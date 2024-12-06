@@ -13,6 +13,7 @@ use std::thread;
 use std::io;
 use ctrlc;
 use env_logger;
+use std::os::windows::process::CommandExt;
 
 #[cfg(unix)]
 use nix::{
@@ -365,6 +366,12 @@ fn start_daemon(config_path: &str, pid_file: &str, log_file: &str) -> io::Result
             nix::unistd::daemon(true, true)?;
             Ok(())
         });
+    }
+
+    #[cfg(target_family = "windows")]
+    {
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        command.creation_flags(CREATE_NO_WINDOW);
     }
 
     let child = command.spawn()?;
